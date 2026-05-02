@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectManager - Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Login Form -->
+        <div class="auth-box" id="login-box">
+            <h2>Welcome Back</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn">Sign In</button>
+                <div class="toggle-auth">
+                    Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                </div>
+            </form>
+            <div id="login-error" style="color: var(--danger); margin-top: 10px; text-align: center;"></div>
+        </div>
+
+        <!-- Signup Form (Hidden initially) -->
+        <div class="auth-box" id="signup-box" style="display: none;">
+            <h2>Create Account</h2>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-role">Role</label>
+                    <select id="signup-role">
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+                <div class="toggle-auth">
+                    Already have an account? <a href="#" id="show-login">Sign in</a>
+                </div>
+            </form>
+            <div id="signup-error" style="color: var(--danger); margin-top: 10px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        // Auth UI Logic
+        document.getElementById('show-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('signup-box').style.display = 'block';
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('signup-box').style.display = 'none';
+            document.getElementById('login-box').style.display = 'block';
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.textContent = 'Signing in...';
+            
+            try {
+                const res = await AuthService.login(
+                    document.getElementById('login-username').value,
+                    document.getElementById('login-password').value
+                );
+                localStorage.setItem('token', res.token);
+                localStorage.setItem('user', JSON.stringify(res));
+                window.location.href = '/dashboard.html';
+            } catch (error) {
+                document.getElementById('login-error').textContent = "Invalid username or password";
+            } finally {
+                btn.textContent = 'Sign In';
+            }
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.textContent = 'Signing up...';
+            
+            try {
+                await AuthService.signup(
+                    document.getElementById('signup-username').value,
+                    document.getElementById('signup-email').value,
+                    document.getElementById('signup-password').value,
+                    document.getElementById('signup-role').value
+                );
+                alert('Registration successful! Please login.');
+                document.getElementById('show-login').click();
+            } catch (error) {
+                document.getElementById('signup-error').textContent = "Error during registration. Try a different username/email.";
+            } finally {
+                btn.textContent = 'Sign Up';
+            }
+        });
+
+        // Redirect if already logged in
+        if (localStorage.getItem('token')) {
+            window.location.href = '/dashboard.html';
+        }
+    </script>
+</body>
+</html>
